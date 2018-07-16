@@ -1,0 +1,218 @@
+■よく使用するgit command
+
+インテグ作業のときによく使用していた
+git status
+git log
+git clone
+git branch
+git branch -r
+git checkout <file>
+git checkout -b <branch name> <remote branch name>    ※remote branch nameはorigin/master など
+git remote -v
+git remote update
+git rebase <remote branch name>
+git rebase --abort
+git rebase -i
+git add
+git commit -m "hogehoge"
+git commit --amend
+git push
+git merge
+git cherry-pick
+git tag
+git diff
+git reset
+git revert
+git rm
+git mv
+git stash
+git stash pop
+git clean -n
+git clean -f
+git mergetool
+git ls-remote
+
+
+インテグ作業のときに、ほとんど使用しなかった
+git init			repositoryとか生成する権限がなかったのでほとんど使用していない
+git fetch			git remote updateを使用していた。
+git pull			git rebase <branch>を使用していた。
+
+
+■参考情報
+以下は参考していただければと思います。
+
+
+[ローカルブランチの更新]
+	git fetchはブランチ単位で変更を取得するが、、
+	git remote updateは、repository 単位で変更を取得する。
+	インテグ業務をしていたときは,単体のブランチよりも、
+	repository 内のすべてのブランチを常に最新の環境で作業するということが大事だったので
+	git remote updateをよく使用していた（git fetchはほとんど使用していなかった）。
+	reposiory内に複数のブランチがあって、とあるブランチで動作確認をする際に、
+	git fetchするの忘れたということを防ぐために、常にrepository全体を更新するという癖をつけていた。
+
+
+[ローカルでの作業方法]
+	例えば中央repogitoryにある origin/master を更新する場合は、
+	ローカルブランチを作成し、ローカルブランチをrepogitoryにpushする。
+
+	$ git clone <url>
+	$ git branch
+	*master
+
+	$ git checkout -b topic/test master
+	$ git branch
+	*topic/test
+	 master
+	 
+	fileを修正
+
+	$ git add <file>
+	$ git commit -m "hogehoge"
+	$ git push origin topic/test
+	GitHubなら、GitHub上でorigin/masterにgit mergeさせることができる。
+
+	ローカルでtopic/testブランチの内容をorigin/masterへmergeするには
+	$ git checkout master
+	$ git merge --no-ff topic/test               ※--logオプションをつけてログを残すこともあった。
+	$ git push origin master
+
+
+[タグをつける]
+	$ git tag -a release-for-xxx-2018xxxx -m "release-for-xxx-2018xxxx"
+	$ git push origin refs/tags/release-for-xxx-2018xxxx:release-for-xxx-2018xxxx
+
+
+[ローカルの複数のコミットに対して、HEADから1つ前（e3e8f～）を修正する]
+	$ git log
+	commit ca6824ee119363a428085fe54e11836d5f258def (HEAD -> master)
+	Author: kattoshi123 <a.sheep.de.kattoshi@88.netyou.jp>
+	Date:   Mon Jul 16 12:16:36 2018 +0900
+
+	    Modify for the code review part 2
+
+	commit e3e8fbf320df292ce641ad31b3e0dd7e33d11e19
+	Author: kattoshi123 <a.sheep.de.kattoshi@88.netyou.jp>
+	Date:   Mon Jul 16 12:15:22 2018 +0900
+
+	    Modify for the code review
+
+	commit 0230bf9127ee255ad33dc775e6568c84a38db891
+	Author: kattoshi123 <a.sheep.de.kattoshi@88.netyou.jp>
+	Date:   Mon Jul 16 12:13:00 2018 +0900
+
+	    first commit
+
+
+
+
+	$ git rebase -i 0230bf9127ee255ad33dc775e6568c84a38db891  ★（e3e8f～）の1つ前の（0230b～）を指定する。
+	pick e3e8fbf Modify for the code review              ★これを修正する
+	pick ca6824e Modify for the code review part 2
+	
+       ↓↓↓
+
+	edit e3e8fbf Modify for the code review              ★pickからeditに変更して保存する。
+	pick ca6824e Modify for the code review part 2
+
+
+	$ git log
+	commit e3e8fbf320df292ce641ad31b3e0dd7e33d11e19 (HEAD)   ★e3e8fbf320df292ce641ad31b3e0dd7e33d11e19がHEADになる。
+	Author: kattoshi123 <a.sheep.de.kattoshi@88.netyou.jp>
+	Date:   Mon Jul 16 12:15:22 2018 +0900
+
+	    Modify for the code review
+
+	commit 0230bf9127ee255ad33dc775e6568c84a38db891
+	Author: kattoshi123 <a.sheep.de.kattoshi@88.netyou.jp>
+	Date:   Mon Jul 16 12:13:00 2018 +0900
+
+	    first commit
+
+    ファイルを修正する。
+
+    $ git add -i
+    $ git commit --amend
+    $ git rebase --continue
+    $ git log
+    commit 4f85c5f35af67ca78e45312d6ac09bdff0ae1900 (HEAD -> master)
+	Author: kattoshi123 <a.sheep.de.kattoshi@88.netyou.jp>
+	Date:   Mon Jul 16 12:16:36 2018 +0900
+
+	    Modify for the code review part 2
+
+	commit 4cf53102642c19ee94a0e22eb0d4b553968531fc            ★（e3e8f～）が（4cf531～）更新されていて、変更内容が反映されている。
+	Author: kattoshi123 <a.sheep.de.kattoshi@88.netyou.jp>
+	Date:   Mon Jul 16 12:15:22 2018 +0900
+
+	     Modify for the code review
+
+	commit 0230bf9127ee255ad33dc775e6568c84a38db891
+	Author: kattoshi123 <a.sheep.de.kattoshi@88.netyou.jp>
+	Date:   Mon Jul 16 12:13:00 2018 +0900
+
+	    first commit
+
+
+     
+
+
+[ローカルの複数のコミットを一つにする]
+（ca682～）と（4cf53～）を一つのコミットにまとめる。
+
+	$ git log
+	commit ca6824ee119363a428085fe54e11836d5f258def (HEAD -> master)
+	Author: kattoshi123 <a.sheep.de.kattoshi@88.netyou.jp>
+	Date:   Mon Jul 16 12:16:36 2018 +0900
+
+	    Modify for the code review part 2
+
+	commit 4cf53102642c19ee94a0e22eb0d4b553968531fc
+	Author: kattoshi123 <a.sheep.de.kattoshi@88.netyou.jp>
+	Date:   Mon Jul 16 12:15:22 2018 +0900
+
+	    Modify for the code review
+
+	commit 0230bf9127ee255ad33dc775e6568c84a38db891
+	Author: kattoshi123 <a.sheep.de.kattoshi@88.netyou.jp>
+	Date:   Mon Jul 16 12:13:00 2018 +0900
+
+	    first commit
+
+	$ git rebase -i 0230bf9127ee255ad33dc775e6568c84a38db891
+	pick 4cf5310 Modify for the code review              
+	pick ca6824e Modify for the code review part 2       ★これを修正する
+
+       ↓↓↓
+
+	edit e3e8fbf Modify for the code review              
+	squash ca6824e Modify for the code review part 2       ★pickからsquashに変更して保存する。
+
+	コミットログを修正する。
+
+	$ git log
+	commit bc5fedb674c0f94a48eadb2d19d8d705f57d9790 (HEAD -> master)    ★コミットが一つになる。
+	Author: kattoshi123 <a.sheep.de.kattoshi@88.netyou.jp>
+	Date:   Mon Jul 16 12:15:22 2018 +0900
+
+	     Modify for the code review
+
+	commit 0230bf9127ee255ad33dc775e6568c84a38db891
+	Author: kattoshi123 <a.sheep.de.kattoshi@88.netyou.jp>
+	Date:   Mon Jul 16 12:13:00 2018 +0900
+
+	    first commit
+
+
+
+[最後に]
+	git push するときだけはよく確認してください。
+	git push しなければ、ローカルで環境をごちゃごちゃにしようが、ぶっ壊そうが、周りに迷惑をかけることはありません。
+	git push をすると、周りの人もその環境を使用することになりますので、気を付けたほうが良いです。
+
+	しかし今回はGitHubを使用するということなので、git push をしてもまだ、中央repositoryには反映されません。
+	GitHub上からmasterにマージするときが一番気を付けたほうがよいですね。
+
+
+

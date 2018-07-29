@@ -211,8 +211,22 @@ git pull			git rebase <branch>を使用していた。
 	git push しなければ、ローカルで環境をごちゃごちゃにしようが、ぶっ壊そうが、周りに迷惑をかけることはありません。
 	git push をすると、周りの人もその環境を使用することになりますので、気を付けたほうが良いです。
 
-	しかし今回はGitHubを使用するということなので、git push をしてもまだ、中央repositoryには反映されません。
-	GitHub上からmasterにマージするときが一番気を付けたほうがよいですね。
+    開発では、以下の手順でmasterに自分の変更を反映させます。
+      ①ローカルにmasterからブランチ(branchA)を作成し、修正を加える。
+      ②branchAをgit push し、GitHub上でPRする。
+      ③GigHub上でビルドや、コードレビューや、コードチェックを行い、OKなら、masterにマージされる
+
+    ②でbranchAがrepogitoryに反映されます。よってbranchAは、ほかの人もgit cloneでとってこれる状態となります。
+    ③でmasterへマージされます。
+
+    また、ローカル環境から直接masterブランチにpushすることは禁止されておりますが、
+    インテグ作業者は直接masterブランチにpushすることがあるかもしれません。このときはGitHubでワンクッションおかずに、
+    そのままmasterブランチに反映されてしまうので、master にpushするときは気を付けたほうが良いです。
+    master ブランチにpush 後、取り消したい場合は、git revert <commit id>を使用します。
+
+
+
+
 
 
 
